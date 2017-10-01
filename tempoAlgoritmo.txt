@@ -1,0 +1,4 @@
+Algoritmo original
+	Solução com um processo
+	Tempo em segundos: 30.000000
+
