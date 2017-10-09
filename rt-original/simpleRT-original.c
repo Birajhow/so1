@@ -300,7 +300,7 @@ int main(int argc, char ** argv) {
     }
   }
 
-  if(save_bmp("output_rt.bmp",&c,image) != 0) {
+  if(save_bmp("output_rt_original.bmp",&c,image) != 0) {
       fprintf(stderr,"Cannot write image 'output.bmp'.\n");
       return 0;
   }

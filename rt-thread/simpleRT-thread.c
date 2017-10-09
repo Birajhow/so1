@@ -12,7 +12,7 @@ Para isso, a imagem terá que ser dividida igualmente entre os threads, os quais
 #include <string.h>
 #include <float.h>
 
-// Adicionei bibliotecas de thread e contagem de tempo de execução
+// Adicionei a biblioteca de thread
 #include <pthread.h>
 // Fim adição de bibliotecas
 

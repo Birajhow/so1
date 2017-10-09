@@ -16,6 +16,10 @@ Use ctrl + f para achar as seções
 #include <string.h>
 #include <float.h>
 
+// Biblioteca necessário para a utilização do OpenMD
+#include <omp.h>
+// Fim adição de bibliotecas
+
 #define TRUE  (0==0)
 #define FALSE (0==1)
 
@@ -275,32 +279,41 @@ int main(int argc, char ** argv) {
   s           = 0;    
   rcp_samples = 1.0 / (float)samples;
 
-  for(i = 0; i < c.view.width; i++) {
-    for(j = 0; j < c.view.height; j++) {
-      float r, g, b;
-      r = g = b = 0.0;
+  #pragma omp parallel
+  {
+    int i, j;
+    int id  = omp_get_thread_num();
+    
+    #pragma omp for
+    for(i = 0; i < c.view.width; i++) {
+      printf("Sou o thread %i.\n", id);
 
-      for(s = 0; s < samples; s++) {
-        ray rr    = get_primary_ray(&c, i, j, s);    
-        color col = trace(c, &rr, 0);
-        
-        r += col.r;
-        g += col.g;
-        b += col.b;
+      for(j = 0; j < c.view.height; j++) {
+        float r, g, b;
+        r = g = b = 0.0;
+  
+        for(s = 0; s < samples; s++) {
+          ray rr    = get_primary_ray(&c, i, j, s);    
+          color col = trace(c, &rr, 0);
+          
+          r += col.r;
+          g += col.g;
+          b += col.b;
+        }
+  
+        r = r * rcp_samples;
+        g = g * rcp_samples;
+        b = b * rcp_samples;
+  
+        //red green blue color components
+        image[3* (i * c.view.height + j) + 0] = floatToIntColor(r);
+        image[3* (i * c.view.height + j) + 1] = floatToIntColor(g);
+        image[3* (i * c.view.height + j) + 2] = floatToIntColor(b);
       }
-
-      r = r * rcp_samples;
-      g = g * rcp_samples;
-      b = b * rcp_samples;
-
-      //red green blue color components
-      image[3* (i * c.view.height + j) + 0] = floatToIntColor(r);
-      image[3* (i * c.view.height + j) + 1] = floatToIntColor(g);
-      image[3* (i * c.view.height + j) + 2] = floatToIntColor(b);
     }
   }
 
-  if(save_bmp("output_rt.bmp",&c,image) != 0) {
+  if(save_bmp("output_rt_openmp.bmp",&c,image) != 0) {
       fprintf(stderr,"Cannot write image 'output.bmp'.\n");
       return 0;
   }
