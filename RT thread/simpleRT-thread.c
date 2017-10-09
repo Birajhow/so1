@@ -14,9 +14,6 @@ Para isso, a imagem terá que ser dividida igualmente entre os threads, os quais
 
 // Adicionei bibliotecas de thread e contagem de tempo de execução
 #include <pthread.h>
-#include <time.h>
-#include <sys/types.h>
-#include <unistd.h>
 // Fim adição de bibliotecas
 
 // Adicionei constante para o uso de threads
@@ -285,12 +282,6 @@ int   irand[NRAN];
 //***MAIN***
 int main(int argc, char ** argv)
 {
-  // Medição de tempo 1
-  clock_t tempoInicial, tempoFinal;
-  double tempoGasto;
-  tempoInicial = clock();
-  // Fim medição de tempo 1
-  
   int    i, j;
   uchar  *image;
   camera c;
@@ -350,18 +341,21 @@ int main(int argc, char ** argv)
   s           = 0;    
   rcp_samples = 1.0 / (float)samples;
 
+  //---INÍCIO THREADS---
   pthread_t threads[NUM_THREADS];
   pthread_attr_t attr;
   long t;
   int rc;
   void *status;
 
+  // Inicia o objeto attr com os valores padrões
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   for(t=0; t<NUM_THREADS; t++){
     printf("Main: criando thread %ld\n", t);
 
+    // Inicialização da struct
     thread_data_array[t].thread_id   = t;
     thread_data_array[t].inicio      = t * (c.view.width/NUM_THREADS);
     thread_data_array[t].fim         = thread_data_array[t].inicio + c.view.width/NUM_THREADS;
@@ -371,6 +365,7 @@ int main(int argc, char ** argv)
     thread_data_array[t].image       = image;
     thread_data_array[t].c           = c;
 
+    // Criação do thread
     rc = pthread_create(&threads[t], &attr, doWork, (void *) &thread_data_array[t]);
     if (rc){
        printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -378,15 +373,21 @@ int main(int argc, char ** argv)
     }
   }
 
+  // Destrói o objeto attr
   pthread_attr_destroy(&attr);
+
+  // Join dos threads
   for(t=0; t<NUM_THREADS; t++) {
     rc = pthread_join(threads[t], &status);
+
     if (rc) {
       printf("ERROR; return code from pthread_join() is %d\n", rc);
       exit(-1);
-      }
+    }
+
     printf("Main: join com thread %ld completo. Status: %ld\n",t,(long)status);
   }
+  //---FIM THREADS---
 
   //printPrimaryRays(rays,c.view.width*c.view.height); //for testing only
 
@@ -399,13 +400,6 @@ int main(int argc, char ** argv)
   //---freeing data---
   //free(rays);
   free(image);
-
-  // Medição de tempo 2
-  tempoFinal = clock();
-
-  tempoGasto = (tempoFinal-tempoInicial)/CLOCKS_PER_SEC;
-  printf("Tempo em segundos: %f\n", tempoGasto);
-  // Fim medição de tempo 2
 
   //---exit---
   return 0;
@@ -421,6 +415,7 @@ int main(int argc, char ** argv)
 // Função que as threads usarão
 void *doWork(void *threadarg)
 {
+  // Inicialização das variáveis
   struct thread_data *my_data;
   my_data           = (struct thread_data *) threadarg;
   long taskid       = my_data->thread_id;
@@ -462,7 +457,9 @@ void *doWork(void *threadarg)
     }
   }
 
-  printf("Sou o thread #%ld!\n", taskid);
+  printf("Sou o thread %ld!\n", taskid);
+
+  // Termina o thread
   pthread_exit((void*) taskid);
 }
 //
