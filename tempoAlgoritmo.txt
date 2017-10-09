@@ -1,4 +1,7 @@
-Algoritmo original
-	Solução com um processo
-	Tempo em segundos: 30.000000
+No computador do Felipe
 
+Algoritmo original
+	Tempo em segundos: 21
+
+Algoritmo com 8 threads
+	Tempo em segundos: 7
